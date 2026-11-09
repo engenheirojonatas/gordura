@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dimensionamento Caixa de Gordura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14171b; --surface:#1d2127; --ink:#e8ebee; --muted:#9aa4ad; --line:#2d343c;
+  --accent:#4cc3ad; --accent-ink:#06201a; --calc:#4cc3ad; --extra:#e8b64a; --field:#161a1f;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+main{max-width:960px;margin:0 auto;padding:20px 16px 32px}
+h1{font-size:1.5rem;line-height:1.15;margin:0 0 4px;font-weight:700;letter-spacing:-.01em}
+.sub{margin:0 0 18px;color:var(--muted);max-width:60ch}
+h2{font-size:1.05rem;margin:0 0 8px;font-weight:600}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.towers{display:grid;gap:8px}
+.tv{height:40px;display:flex;align-items:center;font-weight:700;font-variant-numeric:tabular-nums}
+label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;font:inherit;font-size:1rem;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-variant-numeric:tabular-nums}
+input:not([readonly]),select{background:color-mix(in srgb,var(--accent) 7%,var(--field));border-color:color-mix(in srgb,var(--accent) 35%,var(--line));border-bottom:2px solid var(--accent)}
+input[readonly]{background:transparent;color:var(--muted);border-bottom:1px dashed var(--muted)}
+.hint{display:block;font-size:.76rem;color:var(--muted);margin-top:4px;line-height:1.3}
+.ed-note{font-size:.84rem;color:var(--muted);margin:-10px 0 14px}
+.ed{display:inline-block;width:18px;height:10px;border-bottom:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--field));margin-right:8px;border-radius:2px;vertical-align:-1px}
+.tcard{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:8px}
+.t1{display:grid;grid-template-columns:1fr 40px;gap:10px;align-items:end}
+.t2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.edif{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;background:var(--field);margin:0;color:var(--ink);font-size:.95rem}
+.opt input{width:auto;padding:0;background:none;border:0;margin-top:3px;accent-color:var(--accent)}
+.opt:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--field))}
+.tipo-l{margin-top:10px;font-size:.85rem;color:var(--muted)}
+.tipo-l b{color:var(--accent)}
+.nums .hint{margin-top:2px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:6px}
+.rm{height:40px;width:40px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:1.2rem}
+.rm:hover{color:var(--ink);border-color:var(--muted)}
+.add{margin-top:8px;background:var(--accent);color:var(--accent-ink);border:0;padding:10px 16px;font-weight:600}
+.ppa{max-width:220px;margin-bottom:14px}
+.note{font-size:.84rem;color:var(--muted);margin:12px 0 0}
+.blocks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.blocks .panel{margin-bottom:0}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fields .full{grid-column:1 / -1}
+.bar{display:flex;flex-direction:column-reverse;height:110px;width:100%;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--field);margin-top:16px}
+.seg-c{background:var(--calc)}
+.seg-e{background:repeating-linear-gradient(135deg,var(--extra) 0 6px,transparent 6px 11px);border-bottom:1px solid var(--extra)}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.nums span{display:block;font-size:.8rem;color:var(--muted)}
+.nums b{font-size:1.4rem;font-variant-numeric:tabular-nums}
+.dl{stroke:var(--muted);stroke-width:1}
+.dt{fill:var(--muted);font:10px Figtree,system-ui,sans-serif}
+.dt2{fill:var(--ink);stroke:var(--surface);stroke-width:3;paint-order:stroke;font:9px Figtree,system-ui,sans-serif}
+.b{font-weight:700}
+.dt.b{fill:var(--accent);font-size:11px}
+.dt3{fill:var(--muted);font:9px Figtree,system-ui,sans-serif}
+.res2{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin-top:4px;align-items:stretch}
+.res2 span{display:block;font-size:.8rem;color:var(--muted)}
+.fin{border-left:4px solid var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent);padding:8px 12px;border-radius:0 8px 8px 0}
+.fin span{color:var(--accent);font-weight:600}
+.fin b{display:block;font-size:2rem;line-height:1.15;color:var(--accent);font-variant-numeric:tabular-nums}
+.calc{padding:8px 0}
+.calc b{font-size:1.05rem;color:var(--muted);font-weight:600}
+.fc{fill:#8fc9f2;fill-opacity:.55}
+.fw{fill:#2f8fdb;fill-opacity:.6}
+.wall{stroke:var(--ink);fill:none;stroke-width:3}
+.pipe{fill:#c8683a;stroke:#8f4524;stroke-width:1.2}
+.conc{fill:#cdd3d6;stroke:#7b8488;stroke-width:1}
+.gl{stroke:var(--muted);stroke-width:.6;stroke-dasharray:3 3}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--muted);margin:12px 0 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+@media (max-width:700px){
+  .blocks{grid-template-columns:1fr}
+  .t2{grid-template-columns:1fr 1fr}
+  .t2 .tvw{grid-column:1 / -1}
+  .edif{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>Caixa de gordura coletiva</h1>
+  <p class="sub">Calcule o volume de cada torre e use esse volume, ou outro que você informar, para achar a altura do poço de visita (PV) e da caixa de inspeção (CI).</p>
+  <p class="ed-note"><i class="ed"></i>Os campos com este destaque podem ser editados. Os demais são calculados.</p>
+
+  <section class="panel" aria-labelledby="t-torres">
+    <h2 id="t-torres">Volume pela norma</h2>
+    <div class="towers" id="towers"></div>
+    <button class="add" id="add" type="button">Adicionar torre</button>
+    <p class="note">Volume (L) = 2 × nº de pessoas + 20, com nº de pessoas = pessoas por apartamento × apartamentos.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="t-tipo">
+    <h2 id="t-tipo">Tipo de edificação</h2>
+    <div class="edif" role="radiogroup" aria-labelledby="t-tipo">
+      <label class="opt"><input type="radio" name="edif" value="res"><span><b>Edificação residencial</b></span></label>
+      <label class="opt"><input type="radio" name="edif" value="esp"><span><b>Edificação especial</b> (hospitais, escolas, restaurantes...)</span></label>
+    </div>
+    <small class="hint" id="tipo-h"></small>
+  </section>
+
+  <div class="blocks">
+    <section class="panel" id="pv" aria-labelledby="t-pv">
+      <h2 id="t-pv">Poço de visita (PV)</h2>
+      <div class="fields">
+        <div class="full"><label for="pv-src">Origem do volume</label><select id="pv-src"></select></div>
+        <div><label for="pv-vol">Volume (L)</label><input id="pv-vol" type="number" inputmode="decimal" min="0" step="any"><small class="hint" id="pv-vh"></small></div>
+        <div><label for="pv-dim">Diâmetro do PV (m)</label><input id="pv-dim" type="number" inputmode="decimal" min="0" step="any"><small class="hint">Seção circular: área = π × (D ÷ 2)²</small></div>
+        <div id="pv-aptw" hidden><label for="pv-apts">Apartamentos atendidos</label><input id="pv-apts" type="number" inputmode="numeric" min="0" step="1"><small class="hint">Define o tipo da caixa (residencial)</small></div>
+        
+      </div>
+      <div id="pv-out"></div>
+    </section>
+
+    <section class="panel" id="cx" aria-labelledby="t-cx">
+      <h2 id="t-cx">Caixa de inspeção (CI)</h2>
+      <div class="fields">
+        <div class="full"><label for="cx-src">Origem do volume</label><select id="cx-src"></select></div>
+        <div><label for="cx-vol">Volume (L)</label><input id="cx-vol" type="number" inputmode="decimal" min="0" step="any"><small class="hint" id="cx-vh"></small></div>
+        <div><label for="cx-dim">Lado da CI (m)</label><input id="cx-dim" type="number" inputmode="decimal" min="0" step="any"><small class="hint">Seção quadrada: área = lado × lado</small></div>
+        <div id="cx-aptw" hidden><label for="cx-apts">Apartamentos atendidos</label><input id="cx-apts" type="number" inputmode="numeric" min="0" step="1"><small class="hint">Define o tipo da caixa (residencial)</small></div>
+        
+      </div>
+      <div id="cx-out"></div>
+    </section>
+  </div>
+  <div class="legend" aria-hidden="true">
+    <span><i style="background:#2f8fdb"></i>Água, do fundo até a geratriz inferior do tubo de saída</span>
+    <span><i style="background:transparent;border:1px dashed var(--muted);border-radius:0"></i>Altura útil mínima do tipo escolhido, mostrada quando a altura calculada é maior</span>
+    <span><b>VAR.</b> altura variável, do nível da água até o topo da caixa</span>
+  </div>
+</main>
+
+<script>
+(function(){
+  var KEY="cge-v2";
+  var MINS={CGP:0.4,CGS:0.4,CGD:0.55,CGE:0.6};
+  var state={edif:"res",towers:[{name:"Torre 1",ppa:4,apts:14}],
+    pv:{src:"0",vol:132,dim:1.2,apts:14},
+    cx:{src:"0",vol:132,dim:0.8,apts:14}};
+  try{var s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.towers&&s.towers.length&&s.pv&&s.cx){s.towers.forEach(function(t){if(t.ppa===undefined)t.ppa=s.ppa!==undefined?s.ppa:4;});if(s.edif!=="esp")s.edif="res";["pv","cx"].forEach(function(k){if(s[k].apts===undefined)s[k].apts=14;});state=s;}}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+  function num(v){var n=parseFloat(String(v).replace(",","."));return isFinite(n)&&n>=0?n:0;}
+  function fmt(n,d){return n.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});}
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function towerVol(i){var t=state.towers[i];return 2*num(t.ppa)*num(t.apts)+20;}
+  function tipoApt(n){return n<=1?"CGP":n<=2?"CGS":n<=12?"CGD":"CGE";}
+  function tipoDe(b){
+    if(state.edif==="esp")return "CGE";
+    var s=state[b.k],tw=s.src==="m"?null:state.towers[+s.src];
+    return tipoApt(num(tw?tw.apts:s.apts));
+  }
+
+  var elT=document.getElementById("towers");
+  var blocks=[
+    {k:"pv",area:function(d){return Math.PI*Math.pow(d/2,2);},title:function(d){return "PV Ø "+fmt(d,2)+" m";}},
+    {k:"cx",area:function(l){return l*l;},title:function(l){return "Caixa "+fmt(l,2)+" × "+fmt(l,2)+" m";}}
+  ];
+  blocks.forEach(function(b){
+    b.src=document.getElementById(b.k+"-src");b.vol=document.getElementById(b.k+"-vol");
+    b.dim=document.getElementById(b.k+"-dim");b.apts=document.getElementById(b.k+"-apts");b.aptw=document.getElementById(b.k+"-aptw");b.out=document.getElementById(b.k+"-out");
+  });
+
+  function renderTowers(){
+    elT.innerHTML=state.towers.map(function(t,i){
+      return '<div class="tcard">'+
+        '<div class="t1"><div><label for="n'+i+'">Nome da torre</label><input id="n'+i+'" data-i="'+i+'" data-f="name" type="text" value="'+esc(t.name)+'"></div>'+
+        '<button class="rm" type="button" data-rm="'+i+'" aria-label="Remover '+esc(t.name)+'"'+(state.towers.length<2?' disabled style="opacity:.4;cursor:default"':'')+'>×</button></div>'+
+        '<div class="t2">'+
+          '<div><label for="p'+i+'">Pessoas por apartamento</label><input id="p'+i+'" data-i="'+i+'" data-f="ppa" type="number" inputmode="decimal" min="0" step="any" value="'+esc(t.ppa)+'"></div>'+
+          '<div><label for="a'+i+'">Apartamentos</label><input id="a'+i+'" data-i="'+i+'" data-f="apts" type="number" inputmode="numeric" min="0" step="1" value="'+esc(t.apts)+'"></div>'+
+          '<div class="tvw"><label>Volume calculado</label><div class="tv" id="tv'+i+'"></div></div>'+
+        '</div>'+
+        '<small class="hint" id="th'+i+'"></small></div>';
+    }).join("");
+  }
+  function updateTowerVols(){
+    state.towers.forEach(function(t,i){
+      var e=document.getElementById("tv"+i),h=document.getElementById("th"+i),p=num(t.ppa)*num(t.apts),ps=fmt(p,p%1?1:0);
+      if(e)e.textContent=fmt(towerVol(i),0)+" L";
+      if(h)h.textContent=ps+" pessoas · volume = 2 × "+ps+" + 20 = "+fmt(towerVol(i),0)+" L · tipo "+(state.edif==="esp"?"CGE":tipoApt(num(t.apts)));
+    });
+  }
+  function renderSelects(){
+    blocks.forEach(function(b){
+      var s=state[b.k]; if(s.src!=="m"&&!state.towers[+s.src])s.src="m";
+      b.src.innerHTML=state.towers.map(function(t,i){return '<option value="'+i+'">'+esc(t.name||"Torre")+' ('+fmt(towerVol(i),0)+' L)</option>';}).join("")+'<option value="m">Informar o volume manualmente</option>';
+      b.src.value=s.src;
+    });
+  }
+  function volOf(b){var s=state[b.k];return s.src==="m"?num(s.vol):towerVol(+s.src);}
+  function sec(k,h,acr,dim,sc,lab){
+    var X0=72,YB=204,w=dim*sc,fin=Math.max(h,acr),yv=YB-fin*sc,yt=yv-36,ymin=YB-acr*sc,x1=X0+w,ph=Math.max(0.1*sc,8),pv=k==="pv",two=h>acr;
+    function f(n){return n.toFixed(1);}
+    function vd(x,ya,yb,t,c){
+      return '<line class="dl" x1="'+x+'" y1="'+f(ya)+'" x2="'+x+'" y2="'+f(yb)+'"/>'+
+        '<line class="dl" x1="'+(x-4)+'" y1="'+f(ya)+'" x2="'+(x+4)+'" y2="'+f(ya)+'"/>'+
+        '<line class="dl" x1="'+(x-4)+'" y1="'+f(yb)+'" x2="'+(x+4)+'" y2="'+f(yb)+'"/>'+
+        '<text class="dt'+(c||'')+'" transform="translate('+(x-5)+' '+f((ya+yb)/2)+') rotate(-90)" text-anchor="middle">'+t+'</text>';
+    }
+    function ext(y){return '<line class="gl" x1="'+(X0-62)+'" y1="'+f(y)+'" x2="'+(X0-20)+'" y2="'+f(y)+'"/>';}
+    function soil(x,y,wd,ht){
+      return '<rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(wd)+'" height="'+f(ht)+'" fill="#8b5e34" fill-opacity=".65"/>'+
+        '<rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(wd)+'" height="'+f(ht*0.35)+'" fill="#d2a867" fill-opacity=".65"/>';
+    }
+    var s='<svg viewBox="0 0 340 254" role="img" aria-label="Corte esquemático com cotas" style="width:100%;height:auto;display:block;margin-top:8px">'+
+      '<defs><linearGradient id="wg-'+k+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5db2ee"/><stop offset="1" stop-color="#1f6fb5"/></linearGradient></defs>'+
+      '<rect x="'+X0+'" y="'+f(yt)+'" width="'+f(w)+'" height="'+f(YB-yt)+'" style="fill:var(--field)"/>'+
+      soil(X0-28,yt,22,YB+14-yt)+soil(x1+6,yt,40,YB+14-yt)+soil(X0-6,YB+6,w+12,8)+
+      '<rect x="'+X0+'" y="'+f(yv)+'" width="'+f(w)+'" height="'+f(YB-yv)+'" fill="url(#wg-'+k+')"/>';
+    var n=Math.max(Math.floor(w/5)-1,0),d='M'+X0+' '+f(yv)+' q2.5 -3 5 0';
+    for(var i=0;i<n;i++)d+=' t5 0';
+    s+='<path d="'+d+' H'+f(x1)+'" fill="none" stroke="#e8f5ff" stroke-opacity=".85" stroke-width="1.4"/>';
+    if(two){
+      s+='<line x1="'+X0+'" y1="'+f(ymin)+'" x2="'+f(x1)+'" y2="'+f(ymin)+'" stroke="#fff" stroke-opacity=".85" stroke-width="1.2" stroke-dasharray="4 3"/>';
+    }
+    if(pv){
+      for(var y=yt+16;y<yv-6;y+=Math.max(0.3*sc,18)){
+        s+='<line x1="'+f(X0+w/2-8)+'" y1="'+f(y)+'" x2="'+f(X0+w/2+8)+'" y2="'+f(y)+'" stroke="#6b7478" stroke-width="2" stroke-linecap="round"/>';
+      }
+    }
+    s+='<rect class="conc" x="'+(X0-6)+'" y="'+f(yt)+'" width="6" height="'+f(YB+6-yt)+'"/>'+
+      '<rect class="conc" x="'+f(x1)+'" y="'+f(yt)+'" width="6" height="'+f(YB+6-yt)+'"/>'+
+      '<rect class="conc" x="'+(X0-6)+'" y="'+YB+'" width="'+f(w+12)+'" height="6"/>'+
+      '<rect class="pipe" x="'+(X0-24)+'" y="'+f(yt+8)+'" width="28" height="'+f(ph)+'"/>'+
+      '<text class="dt3" x="'+(X0+9)+'" y="'+f(yt+8+ph/2+3)+'">entrada</text>'+
+      '<rect class="pipe" x="'+f(x1-1)+'" y="'+f(yv-ph)+'" width="42" height="'+f(ph)+'"/>'+
+      '<line class="dl" x1="'+f(x1+41)+'" y1="'+f(yv-ph/2)+'" x2="'+f(x1+50)+'" y2="'+f(yv-ph/2)+'"/>'+
+      '<text class="dt3" x="'+f(x1+54)+'" y="'+f(yv-ph/2+3)+'">tubo de saída</text>'+
+      '<line class="gl" x1="'+f(x1+6)+'" y1="'+f(yv)+'" x2="'+f(x1+50)+'" y2="'+f(yv)+'"/>'+
+      '<text class="dt3" x="'+f(x1+54)+'" y="'+f(yv+11)+'">geratriz inferior</text>'+
+      '<rect x="'+(X0-28)+'" y="'+f(yt-7)+'" width="'+f(w+74)+'" height="7" fill="#3d4246"/>'+
+      '<rect x="'+(X0-8)+'" y="'+f(yt-9)+'" width="'+f(w+16)+'" height="9" rx="2" fill="#5a4a42" stroke="#2d2420"/>'+
+      ext(yt)+ext(yv)+ext(YB)+(two?ext(ymin):'')+
+      (two?vd(X0-34,ymin,YB,fmt(acr,2)+' m')+vd(X0-58,yv,YB,fmt(fin,2)+' m',' b'):vd(X0-34,yv,YB,fmt(fin,2)+' m',' b'))+vd(two?X0-58:X0-34,yt,yv,'VAR.');
+    var yw=YB+26;
+    s+='<line class="dl" x1="'+X0+'" y1="'+yw+'" x2="'+f(x1)+'" y2="'+yw+'"/>'+
+      '<line class="dl" x1="'+X0+'" y1="'+(yw-4)+'" x2="'+X0+'" y2="'+(yw+4)+'"/>'+
+      '<line class="dl" x1="'+f(x1)+'" y1="'+(yw-4)+'" x2="'+f(x1)+'" y2="'+(yw+4)+'"/>'+
+      '<text class="dt" x="'+f((X0+x1)/2)+'" y="'+(yw+15)+'" text-anchor="middle">'+lab+'</text></svg>';
+    return s;
+  }
+  function renderBlocks(){
+    var data=blocks.map(function(b){
+      var s=state[b.k],auto=s.src!=="m",v=volOf(b),d=num(s.dim),tp=tipoDe(b),acr=MINS[tp];
+      b.vol.readOnly=auto;
+      b.aptw.hidden=!(s.src==="m"&&state.edif==="res");
+      document.getElementById(b.k+"-vh").textContent=auto?"Vem da torre escolhida. Para digitar, mude a origem.":"Digite o volume em litros.";
+      if(auto)b.vol.value=Math.round(v*100)/100;
+      var a=b.area(d);
+      return {b:b,d:d,acr:acr,tp:tp,v:v,a:a,h:a>0?v*0.001/a:0};
+    });
+    var mH=0,mW=0;
+    data.forEach(function(x){mH=Math.max(mH,Math.max(x.h,x.acr));mW=Math.max(mW,x.d);});
+    var sc=Math.min(154/(mH||1),140/(mW||1));
+    data.forEach(function(x){
+      x.b.out.innerHTML='<div class="tipo-l"><b>'+x.tp+'</b> · altura útil mínima '+fmt(x.acr,2)+' m</div>'+sec(x.b.k,x.h,x.acr,x.d,sc,x.b.k==="pv"?"Ø "+fmt(x.d,2)+" m":fmt(x.d,2)+" m")+
+        '<div class="res2"><div class="fin"><span>Altura final · valor a adotar</span><b>'+fmt(Math.max(x.h,x.acr),2)+' m</b><small class="hint">'+(x.h>x.acr?'vale a altura calculada':'vale o mínimo de '+fmt(x.acr,2)+' m')+'</small></div><div class="calc"><span>Altura calculada</span><b>'+fmt(x.h,2)+' m</b><small class="hint">'+fmt(x.v/1000,3)+' m³ ÷ '+fmt(x.a,2)+' m²</small></div></div>';
+    });
+  }
+  function refresh(){updateTowerVols();renderSelects();renderBlocks();}
+
+  elT.addEventListener("input",function(e){
+    var i=e.target.getAttribute("data-i"),f=e.target.getAttribute("data-f");
+    if(i===null)return;
+    state.towers[i][f]=e.target.value;
+    save();refresh();
+  });
+  elT.addEventListener("click",function(e){
+    var b=e.target.closest("[data-rm]");if(!b||state.towers.length<2)return;
+    var r=+b.getAttribute("data-rm");
+    state.towers.splice(r,1);
+    blocks.forEach(function(x){var s=state[x.k];if(s.src!=="m"){var n=+s.src;if(n===r)s.src="0";else if(n>r)s.src=String(n-1);}});
+    save();renderTowers();refresh();
+  });
+  document.getElementById("add").addEventListener("click",function(){
+    var last=state.towers[state.towers.length-1];
+    state.towers.push({name:"Torre "+(state.towers.length+1),ppa:last?last.ppa:4,apts:last?last.apts:14});
+    save();renderTowers();refresh();
+    var n=document.getElementById("n"+(state.towers.length-1));if(n){n.focus();n.select();}
+  });
+  blocks.forEach(function(b){
+    var s=state[b.k];
+    b.vol.value=s.src==="m"?s.vol:"";
+    b.dim.value=s.dim;b.apts.value=s.apts===undefined?14:s.apts;
+    b.src.addEventListener("change",function(){
+      if(b.src.value==="m"&&state[b.k].src!=="m"){state[b.k].vol=Math.round(volOf(b)*100)/100;}
+      state[b.k].src=b.src.value;save();refresh();
+      if(b.src.value==="m"){b.vol.value=state[b.k].vol;}
+    });
+    b.vol.addEventListener("input",function(){state[b.k].vol=b.vol.value;save();renderBlocks();});
+    b.dim.addEventListener("input",function(){state[b.k].dim=b.dim.value;save();renderBlocks();});
+    b.apts.addEventListener("input",function(){state[b.k].apts=b.apts.value;save();renderBlocks();});
+  });
+  var hT=document.getElementById("tipo-h");
+  function tipoUI(){
+    document.querySelectorAll('input[name="edif"]').forEach(function(r){r.checked=(r.value===state.edif);});
+    hT.textContent=state.edif==="esp"?"Edificação especial: sempre CGE (caixa de gordura especial), altura útil mínima de "+fmt(MINS.CGE,2)+" m.":"O tipo vem do número de apartamentos: 1 → CGP (pequena) · 2 → CGS (simples) · 3 a 12 → CGD (dupla) · mais de 12 → CGE (especial).";
+  }
+  document.querySelectorAll('input[name="edif"]').forEach(function(r){r.addEventListener("change",function(){if(r.checked){state.edif=r.value;save();tipoUI();refresh();}});});
+  tipoUI();
+  renderTowers();refresh();
+})();
+</script>
+</body>
+</html>
